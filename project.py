@@ -1,4 +1,4 @@
-from flask import Flask, render_template, redirect, url_for
+from flask import Flask, render_template, redirect, url_for, request
 from flask_bootstrap import Bootstrap
 from flask_wtf import FlaskForm 
 from wtforms.validators import InputRequired, Email, Length
@@ -7,6 +7,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
 from wtforms import StringField, PasswordField, BooleanField
 import os
+import sqlite3
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'Thisissupposedtobesecret!'
@@ -23,6 +24,12 @@ class User(UserMixin, db.Model):
     username = db.Column(db.String(15), unique=True)
     email = db.Column(db.String(50), unique=True)
     password = db.Column(db.String(80))
+
+class FileContents(db.Model):
+    id = db.Column(db.Integer,primary_key=True)
+    name = db.Column(db.String(300))
+    data = db.Column(db.LargeBinary)
+    user_name = db.Column(db.String(15))
 
 @login_manager.user_loader
 def load_user(user_id):
@@ -43,6 +50,8 @@ class RegisterForm(FlaskForm):
 def index():
     return render_template('index.html')
 
+# tt=[""]
+
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     form = LoginForm()
@@ -52,6 +61,8 @@ def login():
         if user:
             if check_password_hash(user.password, form.password.data):
                 login_user(user, remember=form.remember.data)
+                # tt = form.username.data
+                # print(tt)
                 return redirect(url_for('dashboard'))
 
         return '<h1>Invalid username or password</h1>'
@@ -72,10 +83,52 @@ def signup():
 
     return render_template('signup.html', form=form)
 
+
 @app.route('/dashboard')
 @login_required
 def dashboard():
-    return render_template('dashboard.html', name=current_user.username)
+	global tt
+	tt = current_user.username
+	return render_template('dashboard.html', name=current_user.username)
+
+@app.route('/download')
+def download():
+    info = sqlite3.connect('database.db')
+    cursor = info.cursor()
+    cursor.execute("SELECT * FROM file_contents WHERE user_name = '%s'" % tt)
+    # for i in cursor.fetchall() :
+        # print(i)
+    return render_template('download.html',x=cursor.fetchall())
+
+@app.route('/dl/<int:id>')
+def dl(id):
+    info = sqlite3.connect('database.db')
+    cursor = info.cursor()
+    cursor.execute("SELECT * FROM file_contents WHERE id = %d" % id)
+    file__name = str(cursor.fetchone()[1])
+    # cursor.execute("SELECT CONVERT('data' USING utf8) FROM file_contents WHERE id = %d" % id)
+    cursor.execute("SELECT CAST(data AS CHAR utf8) FROM file_contents WHERE id = %d" % id)
+    # print(cursor.fetchone()[2])
+    # return cursor.fetchone()[1]
+    file__data = cursor.fetchone()[0]
+    
+    f = open(file__name,"w+")
+    f.write(file__data)
+    f.close()
+    return "Asdsda"
+
+@app.route('/upload',methods=['POST','GET'])
+def uploadfile():
+    file = request.files['inputFile']
+    # prin  t(tt)
+    newFile = FileContents(name=file.filename, data=file.read(),user_name=tt)
+    db.session.add(newFile)
+    db.session.commit()
+    return "good"
+
+@app.route('/uploadfile')
+def upload():
+    return render_template('upload.html')
 
 @app.route('/logout')
 @login_required
@@ -85,4 +138,7 @@ def logout():
 
 if __name__ == '__main__':
     app.debug=True
+    # db.init_app(app)
+    # db.drop_all()
+    # db.create_all()
     app.run()
