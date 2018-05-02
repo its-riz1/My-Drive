@@ -3,11 +3,15 @@
 <head>
 </head>
 <body>
+	<h1>Download</h1><br>
+	<table border="black">
 	{% for red in x %}
-	<h1><a href="/dl/{{red[0]}}" target="_blank">{{red[1]}}</h1>
-	<br />
+	<tr>
+	<td><h1><a href="/dl/{{red[0]}}" target="_blank">{{red[1]}}</a></h1></td>
 	<!-- {{red[2]}}
 	<br /> -->
+	</tr>
 	{% endfor %}
+	</table>
 </body>
 </html>

@@ -65,7 +65,7 @@ def login():
                 # print(tt)
                 return redirect(url_for('dashboard'))
 
-        return '<h1>Invalid username or password</h1>'
+        return render_template('lg2.html')
 
     return render_template('login.html', form=form)
 
@@ -115,7 +115,7 @@ def dl(id):
     f = open(file__name,"w+")
     f.write(file__data)
     f.close()
-    return "Asdsda"
+    return "Successful Download"
 
 @app.route('/upload',methods=['POST','GET'])
 def uploadfile():
