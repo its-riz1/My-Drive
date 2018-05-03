@@ -79,7 +79,7 @@ def signup():
         db.session.add(new_user)
         db.session.commit()
 
-        return '<h1>New user has been created!</h1>'
+        return render_template('sig.html')
 
     return render_template('signup.html', form=form)
 
@@ -115,7 +115,24 @@ def dl(id):
     f = open(file__name,"w+")
     f.write(file__data)
     f.close()
-    return "Successful Download"
+    return render_template('dl.html')
+
+@app.route('/delete')
+def delete():
+	info = sqlite3.connect('database.db')
+	cursor = info.cursor()
+	cursor.execute("SELECT * FROM file_contents WHERE user_name = '%s'" % tt)
+	return render_template('delete.html',x=cursor.fetchall())
+
+@app.route('/dd/<int:id>')
+def dd(id):
+	info = sqlite3.connect('database.db')
+	cursor = info.cursor()
+	cursor.execute("SELECT * FROM file_contents WHERE user_name = '%s'" % tt)
+	file__name = str(cursor.fetchone()[1])
+	cursor.execute("DELETE FROM file_contents WHERE id = %d" % id)
+	info.commit()
+	return render_template('dd.html')
 
 @app.route('/upload',methods=['POST','GET'])
 def uploadfile():
@@ -124,11 +141,59 @@ def uploadfile():
     newFile = FileContents(name=file.filename, data=file.read(),user_name=tt)
     db.session.add(newFile)
     db.session.commit()
-    return "good"
+    return render_template('upl.html')
 
 @app.route('/uploadfile')
 def upload():
     return render_template('upload.html')
+
+@app.route('/view')
+def view():
+    info = sqlite3.connect('database.db')
+    cursor = info.cursor()
+    cursor.execute("SELECT * FROM file_contents WHERE user_name = '%s'" % tt)
+    return render_template('view.html',x=cursor.fetchall())
+
+@app.route('/dv/<int:id>')
+def dv(id):
+    info = sqlite3.connect('database.db')
+    cursor = info.cursor()
+    cursor.execute("SELECT * FROM file_contents WHERE user_name = '%s'" % tt)
+    file__name = str(cursor.fetchone()[1])
+    cursor.execute("SELECT data FROM file_contents WHERE id = %d" % id)
+    return render_template('dv.html',x=cursor.fetchall())
+
+@app.route('/share')
+def share():
+    info = sqlite3.connect('database.db')
+    cursor = info.cursor()
+    cursor.execute("SELECT * FROM file_contents WHERE user_name = '%s'" % tt)
+    return render_template('share.html',x=cursor.fetchall())
+
+@app.route('/shar/<int:id>')
+def shar(id):
+    info = sqlite3.connect('database.db')
+    cursor = info.cursor()
+    global xid
+    xid = id
+    print(xid)
+    cursor.execute("SELECT * FROM user")
+    return render_template('shar.html',x=cursor.fetchall())
+
+@app.route('/sh/<int:id>')
+def sh(id):
+    info = sqlite3.connect('database.db')
+    cursor = info.cursor()
+    cursor.execute("SELECT username FROM user WHERE id = %d" % id)  
+    user = str(cursor.fetchone()[0])
+    cursor.execute("SELECT name FROM file_contents WHERE id = %d" % xid)
+    filename = str(cursor.fetchone()[0])
+    cursor.execute("SELECT data FROM file_contents WHERE id = %d" % xid)
+    filedata = cursor.fetchone()[0]
+    newFile = FileContents(name=filename, data=filedata,user_name=user)
+    db.session.add(newFile)
+    db.session.commit()
+    return render_template('shh.html')
 
 @app.route('/logout')
 @login_required

@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<link rel="stylesheet" href="{{url_for('.static', filename='x.css')}}">
+</head>
+<body>
+	<div class="topnav">
+	<a href="/dashboard">Dashboard</a>
+	<a href="/uploadfile">Upload</a>
+	<a href="/download">Download</a>
+	<a href="/delete">Delete</a>
+	<a href="/share">Share</a>
+	<a href="/view">View</a>
+	</div>
+	<h1>Delete</h1><br>
+	<table border="black">
+	{% for red in x %}
+	<tr>
+	<td><h1><a href="/dd/{{red[0]}}" target="_blank">{{red[1]}}</a></h1></td>
+	<!-- {{red[2]}}
+	<br /> -->
+	</tr>
+	{% endfor %}
+	</table>
+</body>
+</html>
